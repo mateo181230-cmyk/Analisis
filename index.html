@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monopoly Digital Bank</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <h1>🏦 Monopoly Bank</h1>
+                <p class="subtitle">Banca Central y Datáfono Digital</p>
+            </div>
+            <div class="header-actions">
+                <button id="btn-next-turn" class="btn primary glowing">⏳ Avanzar Turno</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="dashboard">
+            <!-- Left Column: Players -->
+            <section class="players-section">
+                <div class="section-header">
+                    <h2>Jugadores</h2>
+                    <button id="btn-add-player" class="btn secondary">+ Nuevo Jugador</button>
+                </div>
+                <!-- Rendered by JS -->
+                <div id="players-grid" class="players-grid">
+                    <p class="empty-state">No hay jugadores activos. Crea uno para empezar.</p>
+                </div>
+            </section>
+
+            <!-- Right Column: Actions & History -->
+            <section class="actions-section">
+                <!-- Dataphone Panel -->
+                <div class="panel dataphone-panel glass-panel">
+                    <h2>💳 Datáfono</h2>
+                    <div class="action-grid">
+                        <button class="action-btn" data-action="transfer">
+                            <span class="icon">🔁</span> Transferir
+                        </button>
+                        <button class="action-btn" data-action="pay-bank">
+                            <span class="icon">🏦</span> Pagar al Banco
+                        </button>
+                        <button class="action-btn" data-action="receive-bank">
+                            <span class="icon">💰</span> Recibir del Banco
+                        </button>
+                        <button class="action-btn highlight" data-action="invest">
+                            <span class="icon">📈</span> Invertir
+                        </button>
+                    </div>
+                </div>
+
+                <!-- History Panel -->
+                <div class="panel history-panel glass-panel">
+                    <div class="section-header">
+                        <h2>Historial</h2>
+                        <button id="btn-undo" class="btn danger small" disabled>↩ Deshacer Último</button>
+                    </div>
+                    <ul id="history-list" class="history-list">
+                        <li class="history-item empty">Historial vacío.</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODALS (Hidden by default) -->
+    <!-- Add Player Modal -->
+    <div id="modal-add-player" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <button class="close-btn">&times;</button>
+            <h2>Crear Jugador</h2>
+            <form id="form-add-player">
+                <div class="form-group">
+                    <label>Nombre del Jugador</label>
+                    <input type="text" id="input-player-name" required placeholder="Ej: Ficha Perro, Carrito...">
+                </div>
+                <div class="form-group">
+                    <label>Saldo Inicial (M$)</label>
+                    <input type="number" id="input-player-balance" value="15000000" min="0" required>
+                </div>
+                <button type="submit" class="btn primary submit-btn">Crear Jugador</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Transaction Modal (Transfer / Pay / Receive) -->
+    <div id="modal-transaction" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <button class="close-btn">&times;</button>
+            <h2 id="transaction-title">Transacción</h2>
+            <form id="form-transaction">
+                <input type="hidden" id="tx-type">
+                
+                <div class="form-group" id="fg-from">
+                    <label>De (Remitente)</label>
+                    <select id="select-tx-from"></select>
+                </div>
+
+                <div class="form-group" id="fg-to">
+                    <label>Para (Destinatario)</label>
+                    <select id="select-tx-to"></select>
+                </div>
+
+                <div class="form-group">
+                    <label>Cantidad (M$)</label>
+                    <input type="number" id="input-tx-amount" min="1" required placeholder="Ej: 500000">
+                </div>
+
+                <button type="submit" class="btn primary submit-btn">Confirmar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Investment Modal -->
+    <div id="modal-investment" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <button class="close-btn">&times;</button>
+            <h2>📈 Nueva Inversión</h2>
+            <form id="form-investment">
+                <div class="form-group">
+                    <label>Jugador</label>
+                    <select id="select-inv-player" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de Inversión</label>
+                    <select id="select-inv-type" required>
+                        <option value="closed">🟢 Método Cerrado (Seguro - Fijo 10% x Turno)</option>
+                        <option value="open">🔴 Método Abierto (Riesgo - Rentabilidad Variable)</option>
+                    </select>
+                    <small id="inv-desc" class="help-text">Gana una rentabilidad fija y segura equivalente a 10% del capital por cada turno que se deje invertido.</small>
+                </div>
+                <div class="form-group">
+                    <label>Cantidad a Invertir (M$)</label>
+                    <input type="number" id="input-inv-amount" min="1" required placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Duración (Turnos)</label>
+                    <input type="number" id="input-inv-turns" min="1" value="3" required>
+                    <small class="help-text">El dinero quedará congelado por este número de turnos. No podrás usarlo hasta que sea liberado.</small>
+                </div>
+                <button type="submit" class="btn highlight submit-btn">Confirmar Inversión</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
